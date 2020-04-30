@@ -167,6 +167,7 @@ def Play(Game):
 
     ## assigner la liste de la fonction à une variable l
     l = listeDepl(Game)
+    ProchainCoup(Game)
 
     if(len(l) != 0) : ## s'il y a quelque chose dans la liste l, on choisi un déplacement aléatoire de cette liste
 
@@ -189,11 +190,12 @@ def Play(Game):
        
        return False   # la partie continue
 
+
+
 def SimulationPartie(Game):   
     
     while(1):
         x,y = Game.PlayerX, Game.PlayerY
-        print(x,y)
 
         Game.Grille[x,y] = 2  # laisse la trace de la moto
 
@@ -228,13 +230,41 @@ def MonteCarlo(Game, nombreParties):
     for i in range(nombreParties):
         Game2 = Game.copy()
         total += SimulationPartie(Game2.Grille)
-    return total
+    return total/nombreParties
     
+def ProchainCoup(Game):
+    #Appeler MonteCarlo pour les trois possibilités
+    #Comparer ces trois valeurs de MonteCarlo
+    #Choisir le score moyen le plus haut
+    #Prendre le coup choisi
+
+    x = Game.PlayerX
+    y = Game.PlayerY
+    l = listeDepl(Game)
+    tabScore = []
+
+    for i in range (len(l)):
+        GameCopy = Game.copy()
+        x += l[i][0]
+        y += l[i][1]
+        GameCopy.PlayerX = x
+        GameCopy.PlayerY = y
+        SimulationPartie(GameCopy)
+        tabScore.append(GameCopy.Score)
+
+    bestScoreMoyen = tabScore.index(max(tabScore))
+    
+    print("Liste :", l)
+    print("TabScore : ", tabScore)
+    print("Best Score Moyen : ", bestScoreMoyen)
+    
+    #import pdb; pdb.set_trace()
+
 
 
 def Partie():
 
-    PartieTermine = SimulationPartie(CurrentGame)
+    PartieTermine = Play(CurrentGame)
     
     if not PartieTermine :
         Affiche(CurrentGame)
