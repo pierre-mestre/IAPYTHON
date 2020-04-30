@@ -6,5 +6,5 @@ git add .
 git commit -m %save%
 git push origin master
 echo 
-echo sauvegarde effectuEe correctement 
+echo sauvegarde effectuee correctement 
 pause
