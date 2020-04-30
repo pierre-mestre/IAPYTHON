@@ -165,6 +165,7 @@ def Play(Game):
 
     Game.Grille[x,y] = 2  # laisse la trace de la moto
 
+#################################################################################
     ## assigner la liste de la fonction à une variable l
     l = listeDepl(Game)
 
@@ -174,8 +175,8 @@ def Play(Game):
         
         x += l[r][0] ## utilisation de tableaux à deux dimensions car
         y += l[r][1] ## le tableau de jeu est une liste de tuples
-
-
+#################################################################################
+   
 
     v = Game.Grille[x,y]
     
@@ -188,53 +189,16 @@ def Play(Game):
        Game.Score += 1
        
        return False   # la partie continue
-
-def SimulationPartie(Game):   
-    
-    while(1):
-        x,y = Game.PlayerX, Game.PlayerY
-        print(x,y)
-
-        Game.Grille[x,y] = 2  # laisse la trace de la moto
-
-        ## assigner la liste de la fonction à une variable l
-        l = listeDepl(Game)
-
-        if(len(l) == 0) :
-            print("Score : ", Game.Score)
-            return Game.Score
-        
-        else: ## s'il y a quelque chose dans la liste l, on choisi un déplacement aléatoire de cette liste
-
-            r = random.randrange(len(l)) ## random entre 0 et la longueur de la liste l
-            
-            x += l[r][0] ## utilisation de tableaux à deux dimensions car
-            y += l[r][1] ## le tableau de jeu est une liste de tuples
-
-            Game.PlayerX = x  # valide le déplacement
-            Game.PlayerY = y  # valide le déplacement
-            Game.Score += 1
-            
-            return False   # la partie continue
-    
+     
 
 ################################################################################
      
 CurrentGame = GameInit.copy()
  
 
-def MonteCarlo(Game, nombreParties):
-    total = 0
-    for i in range(nombreParties):
-        Game2 = Game.copy()
-        total += SimulationPartie(Game2.Grille)
-    return total
-    
-
-
 def Partie():
 
-    PartieTermine = SimulationPartie(CurrentGame)
+    PartieTermine = Play(CurrentGame)
     
     if not PartieTermine :
         Affiche(CurrentGame)
