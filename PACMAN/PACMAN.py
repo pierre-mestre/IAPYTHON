@@ -29,7 +29,7 @@ TBL = np.array(TBL,dtype=np.int32)
 TBL = TBL.transpose()  ## ainsi, on peut écrire TBL[x][y]
 
 
-        
+       
 ZOOM = 40   # taille d'une case en pixels
 EPAISS = 8  # epaisseur des murs bleus en pixels
 HAUTEUR = TBL.shape [1]      
@@ -102,8 +102,31 @@ def PlacementsGUM():  # placements des pacgums
          if ( TBL[x][y] == 0):
             GUM[x][y] = 1
    return GUM
-            
-GUM = PlacementsGUM()   
+
+def initGPS():
+  GPS = np.zeros(GUM.shape)
+
+  for x in range(LARGEUR):
+    for y in range(HAUTEUR):
+
+     if ( GUM[x][y] == 0):
+      GPS[x][y] = 1000
+     if ( GUM[x][y] == 1):
+      GPS[x][y] = 0
+
+  return GPS
+
+
+def majGPS():
+  for x in range(LARGEUR):
+    for y in range(HAUTEUR):
+      if ( GPS[x][y] != 1000):
+        if GPS[x][y] > 0 :
+          GPS[x][y]=min([GPS[x+1][y], GPS[x-1][y], GPS[x][y+1], GPS[x][y-1]])+1
+
+
+GUM = PlacementsGUM()
+GPS = initGPS()   
 
 PacManPos = [5,5]
 
@@ -226,21 +249,33 @@ def GhostsPossibleMove(x,y):
    if ( TBL[x+1][y  ] == 2 ): L.append(( 1,0))
    if ( TBL[x-1][y  ] == 2 ): L.append((-1,0))
    return L
-   
+
+
+
 def IA():
+   score = 0
    global PacManPos, Ghosts
    #deplacement Pacman
    L = PacManPossibleMove()
    choix = random.randrange(len(L))
    PacManPos[0] += L[choix][0]
    PacManPos[1] += L[choix][1]
-   
+   if GUM[PacManPos[0]][PacManPos[1]] == 1 :
+       GUM[PacManPos[0]][PacManPos[1]] = 0;
+       score += 1
+       GPS[PacManPos[0]][PacManPos[1]] = 1
+
    #deplacement Fantome
    for F in Ghosts:
       L = GhostsPossibleMove(F[0],F[1])
       choix = random.randrange(len(L))
       F[0] += L[choix][0]
       F[1] += L[choix][1]
+   majGPS()
+   print(GPS)
+   print("\n")
+   return score
+
  
 
 #################################################################
