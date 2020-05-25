@@ -116,6 +116,18 @@ def initGPS():
 
   return GPS
 
+def initWhereIsTheGost():
+  WhereIsTheGost = np.zeros(GUM.shape)
+
+  for x in range(LARGEUR):
+    for y in range(HAUTEUR):
+
+     if ( GUM[x][y] == 0):
+      WhereIsTheGost[x][y] = 1000
+     if ( GUM[x][y] == 1):
+      WhereIsTheGost[x][y] = 99
+
+  return WhereIsTheGost
 
 def majGPS():
   for x in range(LARGEUR):
@@ -124,10 +136,60 @@ def majGPS():
         if GPS[x][y] > 0 :
           GPS[x][y]=min([GPS[x+1][y], GPS[x-1][y], GPS[x][y+1], GPS[x][y-1]])+1
 
+def majGostPosition(F,tableauGostPosition):
+  x=F[0]
+  y=F[1]
+  tableauGostPosition[x][y]=0
+  precision = 0
+  if ( tableauGostPosition[x-1][y  ] < 100 ): tableauGostPosition[x-1][y  ] =1
+  if ( tableauGostPosition[x  ][y-1] < 100 ): tableauGostPosition[x  ][y-1]=1
+  if ( tableauGostPosition[x  ][y+1] < 100 ): tableauGostPosition[x  ][y+1]=1
+  if ( tableauGostPosition[x+1][y  ] < 100 ): tableauGostPosition[x+1][y  ]=1
+
+  for i in range(x,LARGEUR):
+    for j in range(y,HAUTEUR):
+      if tableauGostPosition[i][j]!=1000 and tableauGostPosition[i][j]!=0:
+        L = []
+        if ( tableauGostPosition[i-1][j  ] < 100 ): L.append(tableauGostPosition[i-1][j  ])
+        if ( tableauGostPosition[i  ][j-1] < 100 ): L.append(tableauGostPosition[i  ][j-1])
+        if ( tableauGostPosition[i  ][j+1] < 100 ): L.append(tableauGostPosition[i  ][j+1])
+        if ( tableauGostPosition[i+1][j  ] < 100 ): L.append(tableauGostPosition[i+1][j  ])
+        tableauGostPosition[i][j]=min(L,default=98)+1
+  for i in range(x,0,-1):
+    for j in range(y,0,-1):
+      if tableauGostPosition[i][j]!=1000 and tableauGostPosition[i][j]!=0:
+        L = []
+        if ( tableauGostPosition[i-1][j  ] < 100 ): L.append(tableauGostPosition[i-1][j  ])
+        if ( tableauGostPosition[i  ][j-1] < 100 ): L.append(tableauGostPosition[i  ][j-1])
+        if ( tableauGostPosition[i  ][j+1] < 100 ): L.append(tableauGostPosition[i  ][j+1])
+        if ( tableauGostPosition[i+1][j  ] < 100 ): L.append(tableauGostPosition[i+1][j  ])
+        tableauGostPosition[i][j]=min(L,default=98)+1
+  while precision <3:    ##permet d'augmenter la précision de la position des fantom en bouclant plusieurs fois        
+    for i in range(0,LARGEUR):
+      for j in range(0,HAUTEUR):
+        if tableauGostPosition[i][j]!=1000 and tableauGostPosition[i][j]!=0:
+          L = []
+          if ( tableauGostPosition[i-1][j  ] < 100 ): L.append(tableauGostPosition[i-1][j  ])
+          if ( tableauGostPosition[i  ][j-1] < 100 ): L.append(tableauGostPosition[i  ][j-1])
+          if ( tableauGostPosition[i  ][j+1] < 100 ): L.append(tableauGostPosition[i  ][j+1])
+          if ( tableauGostPosition[i+1][j  ] < 100 ): L.append(tableauGostPosition[i+1][j  ])
+          tableauGostPosition[i][j]=min(L,default=98)+1    
+    precision=precision+1
+
+def majRecapGostPosition():
+  for x in range(LARGEUR):
+    for y in range(HAUTEUR):
+        recapGostPosition[x][y]=min(tableauGostPosition[0][x][y],tableauGostPosition[1][x][y],tableauGostPosition[2][x][y],tableauGostPosition[3][x][y])
+
 
 GUM = PlacementsGUM()
 GPS = initGPS()   
-
+pinkGostPosition = initWhereIsTheGost()
+redGostPosition = initWhereIsTheGost()
+blueGostPosition = initWhereIsTheGost()
+orangeGostPosition = initWhereIsTheGost()
+recapGostPosition = initWhereIsTheGost()
+recapGostPosition = initWhereIsTheGost()
 PacManPos = [5,5]
 
 Ghosts  = []
@@ -232,13 +294,14 @@ def Affiche():
 ##  IA RANDOM
 currentX = [-100,-100,-100,-100]
 currentY = [-100,-100,-100,-100]
+tableauGostPosition = [pinkGostPosition,orangeGostPosition,blueGostPosition,redGostPosition]
 
 def randomGostSave(F,index) :
   L = GhostsPossibleMove(F[0],F[1])
   choix = random.randrange(len(L))
   currentX[index]=L[choix][0]
   currentY[index]=L[choix][1]
-  print(F, " X: ", currentX[index], " Y: ", currentY[index])
+  # print(F, " X: ", currentX[index], " Y: ", currentY[index])
 
 def randomGost(F) :
    L = GhostsPossibleMove(F[0],F[1])
@@ -277,21 +340,20 @@ def GhostsPossibleMove(x,y):
    return L
 
 
-
 def IA():
    score = 0
    global PacManPos, Ghosts
    #deplacement Pacman
    tabDep= [GPS[PacManPos[0]+1][PacManPos[1]],GPS[PacManPos[0]-1][PacManPos[1]],GPS[PacManPos[0]][PacManPos[1]+1],GPS[PacManPos[0]][PacManPos[1]-1]]
-   deplacement = tabDep.index(min(tabDep))
+   deplacement = tabDep.index(min(tabDep))                           
 
  
-   if deplacement == 0:
+   if deplacement == 0 :
     PacManPos[0] = PacManPos[0]+1
     PacManPos[1] = PacManPos[1]
    elif deplacement == 1:
      PacManPos[0] = PacManPos[0]-1
-     PacManPos[1] = PacManPos[1]
+     PacManPos[1] = PacManPos[1]                     
    elif deplacement == 2:
      PacManPos[0] = PacManPos[0]
      PacManPos[1] = PacManPos[1]+1
@@ -330,16 +392,39 @@ def IA():
       if index != -1:
         if(currentX[index] == -100 or currentY == -1000):
           randomGostSave(F,index)
+          F[0]+=currentX[index]
+          F[1]+=currentY[index]
         elif TBL[F[0]+currentX[index]][F[1]+currentY[index]]!=0:
           randomGostSave(F,index)
+          F[0]+=currentX[index]
+          F[1]+=currentY[index]
+        elif len(GhostsPossibleMove(F[0],F[1])) > 2:
+          randomGostSave(F,index)
+          F[0]+=currentX[index]
+          F[1]+=currentY[index]
         else:
           F[0]+=currentX[index]
           F[1]+=currentY[index]
       else:
         print("else")
+      majGostPosition(F,tableauGostPosition[index])
+
 
    majGPS()
-   print(GPS)
+   majRecapGostPosition()
+   print("\n RECAP: \n\n",recapGostPosition)
+   # print(GPS)
+   print("\n")
+   # print("\n\nrecap:\n",recapGostPosition)
+   # print(GPS)
+   # majGostPosition(pinkGostPosition)
+   print("\n PINK: \n\n",pinkGostPosition)
+   # majGostPosition(orangeGostPosition)
+   print("\n ORANGE: \n\n",orangeGostPosition)
+   # majGostPosition(redGostPosition)
+   print("\n RED: \n\n",redGostPosition)
+   # majGostPosition(blueGostPosition)
+   print("\n BLUE: \n\n",blueGostPosition)
    print("\n")
    return score
 
@@ -359,8 +444,4 @@ def MainLoop():
 
 AfficherPage(0)
 Window.mainloop()
-   
-   
-    
-   
    
