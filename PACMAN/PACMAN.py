@@ -230,7 +230,21 @@ def Affiche():
 #################################################################
 ##
 ##  IA RANDOM
+currentX = [-100,-100,-100,-100]
+currentY = [-100,-100,-100,-100]
 
+def randomGostSave(F,index) :
+  L = GhostsPossibleMove(F[0],F[1])
+  choix = random.randrange(len(L))
+  currentX[index]=L[choix][0]
+  currentY[index]=L[choix][1]
+  print(F, " X: ", currentX[index], " Y: ", currentY[index])
+
+def randomGost(F) :
+   L = GhostsPossibleMove(F[0],F[1])
+   choix = random.randrange(len(L))
+   F[0] += L[choix][0]
+   F[1] += L[choix][1]
 
       
 def PacManPossibleMove():
@@ -242,12 +256,24 @@ def PacManPossibleMove():
    if ( TBL[x-1][y  ] == 0 ): L.append((-1,0))
    return L
    
-def GhostsPossibleMove(x,y):
+def GhostsPossibleMoveOUT(x,y):
    L = []
    if ( TBL[x  ][y-1] == 2 ): L.append((0,-1))
    if ( TBL[x  ][y+1] == 2 ): L.append((0, 1))
    if ( TBL[x+1][y  ] == 2 ): L.append(( 1,0))
    if ( TBL[x-1][y  ] == 2 ): L.append((-1,0))
+   if ( TBL[x-1][y  ] == 0 ): L.append((-1,0))
+   if ( TBL[x  ][y-1] == 0 ): L.append((0,-1))
+   if ( TBL[x  ][y+1] == 0 ): L.append((0, 1))
+   if ( TBL[x+1][y  ] == 0 ): L.append(( 1,0))
+   return L
+
+def GhostsPossibleMove(x,y):
+   L = []
+   if ( TBL[x-1][y  ] == 0 ): L.append((-1,0))
+   if ( TBL[x  ][y-1] == 0 ): L.append((0,-1))
+   if ( TBL[x  ][y+1] == 0 ): L.append((0, 1))
+   if ( TBL[x+1][y  ] == 0 ): L.append(( 1,0))
    return L
 
 
@@ -256,21 +282,62 @@ def IA():
    score = 0
    global PacManPos, Ghosts
    #deplacement Pacman
-   L = PacManPossibleMove()
-   choix = random.randrange(len(L))
-   PacManPos[0] += L[choix][0]
-   PacManPos[1] += L[choix][1]
+   tabDep= [GPS[PacManPos[0]+1][PacManPos[1]],GPS[PacManPos[0]-1][PacManPos[1]],GPS[PacManPos[0]][PacManPos[1]+1],GPS[PacManPos[0]][PacManPos[1]-1]]
+   deplacement = tabDep.index(min(tabDep))
+
+ 
+   if deplacement == 0:
+    PacManPos[0] = PacManPos[0]+1
+    PacManPos[1] = PacManPos[1]
+   elif deplacement == 1:
+     PacManPos[0] = PacManPos[0]-1
+     PacManPos[1] = PacManPos[1]
+   elif deplacement == 2:
+     PacManPos[0] = PacManPos[0]
+     PacManPos[1] = PacManPos[1]+1
+   elif deplacement == 3:
+     PacManPos[0] = PacManPos[0]
+     PacManPos[1] = PacManPos[1]-1
+   else :
+    L = PacManPossibleMove()
+    choix = random.randrange(len(L))
+    PacManPos[0] += L[choix][0]
+    PacManPos[1] += L[choix][1]
+
+
    if GUM[PacManPos[0]][PacManPos[1]] == 1 :
        GUM[PacManPos[0]][PacManPos[1]] = 0;
        score += 1
        GPS[PacManPos[0]][PacManPos[1]] = 1
 
-   #deplacement Fantome
+  #deplacement Fantome
+   index = -1
    for F in Ghosts:
-      L = GhostsPossibleMove(F[0],F[1])
+    if TBL[F[0]][F[1]] != 0:
+      L = GhostsPossibleMoveOUT(F[0],F[1])
       choix = random.randrange(len(L))
       F[0] += L[choix][0]
       F[1] += L[choix][1]
+    else :
+      if F == Ghosts[0] : 
+        index = 0
+      elif F == Ghosts[1] :
+        index = 1
+      elif F == Ghosts[2] :
+        index = 2
+      elif F == Ghosts[3] :
+        index = 3
+      if index != -1:
+        if(currentX[index] == -100 or currentY == -1000):
+          randomGostSave(F,index)
+        elif TBL[F[0]+currentX[index]][F[1]+currentY[index]]!=0:
+          randomGostSave(F,index)
+        else:
+          F[0]+=currentX[index]
+          F[1]+=currentY[index]
+      else:
+        print("else")
+
    majGPS()
    print(GPS)
    print("\n")
