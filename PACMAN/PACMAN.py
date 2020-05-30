@@ -1,6 +1,8 @@
 import random
 import tkinter as tk
 from tkinter import font  as tkfont
+from tkinter import *
+from tkinter import messagebox
 import numpy as np
  
 
@@ -29,7 +31,7 @@ TBL = np.array(TBL,dtype=np.int32)
 TBL = TBL.transpose()  ## ainsi, on peut écrire TBL[x][y]
 
 
-       
+resultat = 0       
 ZOOM = 40   # taille d'une case en pixels
 EPAISS = 8  # epaisseur des murs bleus en pixels
 HAUTEUR = TBL.shape [1]      
@@ -74,9 +76,9 @@ def AfficherPage(id):
     
 def WindowAnim():
     MainLoop()
-    Window.after(500,WindowAnim)
+    Window.after(10,WindowAnim) #500
 
-Window.after(100,WindowAnim)
+Window.after(10,WindowAnim) #100
 
 # Ressources
 
@@ -286,7 +288,8 @@ def Affiche():
      
    # texte blabla
    
-   canvas.create_text(screeenWidth // 2, screenHeight- 50 , text = "Hello", fill ="yellow", font = PoliceTexte)
+   # canvas.create_text(screeenWidth // 2, screenHeight- 50 , text = "Hello", fill ="yellow", font = PoliceTexte)
+
  
             
 #################################################################
@@ -295,6 +298,20 @@ def Affiche():
 currentX = [-100,-100,-100,-100]
 currentY = [-100,-100,-100,-100]
 tableauGostPosition = [pinkGostPosition,orangeGostPosition,blueGostPosition,redGostPosition]
+
+def ItsOver():
+  for F in Ghosts:
+    if F[0] == PacManPos[0] and F[1]== PacManPos[1]:
+      return 1
+    if F[0] == PacManPos[0]+1 and F[1]== PacManPos[1]:
+      return 1
+    if F[0] == PacManPos[0]-1 and F[1]== PacManPos[1]:
+      return 1
+    if F[0] == PacManPos[0] and F[1]== PacManPos[1]+1:
+      return 1
+    if F[0] == PacManPos[0] and F[1]== PacManPos[1]-1:
+      return 1
+  return 0
 
 def randomGostSave(F,index) :
   L = GhostsPossibleMove(F[0],F[1])
@@ -341,35 +358,55 @@ def GhostsPossibleMove(x,y):
 
 
 def IA():
-   score = 0
-   global PacManPos, Ghosts
+   
+   tabDep=[9999,9999,9999,9999]
+   global PacManPos, Ghosts ,resultat
    #deplacement Pacman
-   tabDep= [GPS[PacManPos[0]+1][PacManPos[1]],GPS[PacManPos[0]-1][PacManPos[1]],GPS[PacManPos[0]][PacManPos[1]+1],GPS[PacManPos[0]][PacManPos[1]-1]]
-   deplacement = tabDep.index(min(tabDep))                           
-
- 
-   if deplacement == 0 :
-    PacManPos[0] = PacManPos[0]+1
-    PacManPos[1] = PacManPos[1]
-   elif deplacement == 1:
+   if recapGostPosition[PacManPos[0]+1][PacManPos[1]]>3 and TBL[PacManPos[0]+1][PacManPos[1]] == 0:
+    tabDep[0]=GPS[PacManPos[0]+1][PacManPos[1]]
+   else:
+    tabDep[0]=9999
+   if recapGostPosition[PacManPos[0]-1][PacManPos[1]]>3 and TBL[PacManPos[0]-1][PacManPos[1]] == 0:
+    tabDep[1]=GPS[PacManPos[0]-1][PacManPos[1]]
+   else:
+    tabDep[1]=9999
+   if recapGostPosition[PacManPos[0]][PacManPos[1]+1]>3 and TBL[PacManPos[0]][PacManPos[1]+1] == 0:
+    tabDep[2]=GPS[PacManPos[0]][PacManPos[1]+1]
+   else:
+    tabDep[2]=9999
+   if recapGostPosition[PacManPos[0]][PacManPos[1]-1]>3 and TBL[PacManPos[0]][PacManPos[1]-1] == 0:
+    tabDep[3]=GPS[PacManPos[0]][PacManPos[1]-1]
+   else:
+    tabDep[3]=9999
+   if tabDep[0]==9999 and tabDep[1]==9999 and tabDep[2]==9999 and tabDep[3]==9999:
+     L = PacManPossibleMove()
+     choix = random.randrange(len(L))
+     PacManPos[0] += L[choix][0]
+     PacManPos[1] += L[choix][1]
+   else:
+    deplacement = tabDep.index(min(tabDep))                      
+    if deplacement == 0 :
+     PacManPos[0] = PacManPos[0]+1
+     PacManPos[1] = PacManPos[1]
+    elif deplacement == 1:
      PacManPos[0] = PacManPos[0]-1
      PacManPos[1] = PacManPos[1]                     
-   elif deplacement == 2:
+    elif deplacement == 2:
      PacManPos[0] = PacManPos[0]
      PacManPos[1] = PacManPos[1]+1
-   elif deplacement == 3:
+    elif deplacement == 3:
      PacManPos[0] = PacManPos[0]
      PacManPos[1] = PacManPos[1]-1
-   else :
-    L = PacManPossibleMove()
-    choix = random.randrange(len(L))
-    PacManPos[0] += L[choix][0]
-    PacManPos[1] += L[choix][1]
+    else :
+     L = PacManPossibleMove()
+     choix = random.randrange(len(L))
+     PacManPos[0] += L[choix][0]
+     PacManPos[1] += L[choix][1]
 
 
    if GUM[PacManPos[0]][PacManPos[1]] == 1 :
-       GUM[PacManPos[0]][PacManPos[1]] = 0;
-       score += 1
+       GUM[PacManPos[0]][PacManPos[1]] = 0
+       resultat = resultat + 1
        GPS[PacManPos[0]][PacManPos[1]] = 1
 
   #deplacement Fantome
@@ -426,17 +463,24 @@ def IA():
    # majGostPosition(blueGostPosition)
    print("\n BLUE: \n\n",blueGostPosition)
    print("\n")
-   return score
 
  
 
 #################################################################
 ##
 ##   GAME LOOP
-
 def MainLoop():
-  IA()
-  Affiche()  
+       
+      if ItsOver() == 1:
+          messagebox.showinfo("PARTIE PERDU", "PARTIE PERDU, COLLISION FANTOMES INÉVITABLE")
+          sys.exit()
+      elif resultat >= 100:
+          messagebox.showinfo("PARTIE GAGNÉ", "BRAVO CHAMPION")
+          sys.exit()
+      IA()
+      Affiche()     
+      canvas.create_text(screeenWidth // 2, screenHeight- 40 , text = ("SCORE:", resultat) , fill ="red", font = PoliceTexte)
+        #canvas.create_text(screeenWidth // 2.5, screenHeight- 40 , text = "SCORE :" , fill ="red", font = PoliceTexte)
  
  
 ###########################################:
@@ -444,4 +488,6 @@ def MainLoop():
 
 AfficherPage(0)
 Window.mainloop()
+
+ 
    
